@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>com.zachsully.dl-plugin</id>
+    <name>DL</name>
+    <version>0.0.0</version>
+    <vendor email="zsulliva@cs.uoregon.edu"
+            url="https://www.zachsully.com">Zach Sullivan
+    </vendor>
+    <depends>com.intellij.modules.lang</depends>
+
+    <description>
+        A plugin for the DL programming language
+    </description>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileTypeFactory implementation="com.zachsully.dl.DLFileTypeFactory"/>
+        <lang.parserDefinition language="DL" implementationClass="com.zachsully.dl.DLParserDefinition"/>
+    </extensions>
+
+    <actions></actions>
+</idea-plugin>

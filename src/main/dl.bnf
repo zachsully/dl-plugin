@@ -1,0 +1,265 @@
+{
+    parserClass="com.zachsully.dl.parser.DLParser"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+    psiClassPrefix="DL"
+    psiImplClassSuffix="Impl"
+    psiPackage="com.zachsully.dl.psi"
+    psiImplPackage="com.zachsully.dl.psi.impl"
+
+    elementTypeHolderClass="com.zachsully.dl.psi.DLTypes"
+    elementTypeClass="com.zachsully.dl.psi.DLElementType"
+    tokenTypeClass="com.zachsully.dl.psi.DLTokenType"
+
+    extends(".*type")=type
+    extends(".*term")=term
+
+    tokens = [
+      DASH_DASH     = '--'
+      LBRACE_DASH   = '{-'
+      DASH_RBRACE   = '-}'
+      INT           = 'Int'
+      PLUS          = '+'
+      CODATA        = 'codata'
+      DATA          = 'data'
+      INDEX         = 'index'
+      COCASE        = 'cocase'
+      CASE          = 'case'
+      FIX           = 'fix'
+      LET           = 'let'
+      LETREC        = 'letrec'
+      EQ            = '='
+      IN            = 'in'
+      HASH          = '#'
+      UNDERSCORE    = '_'
+      ARR           = '->'
+      DARR          = '=>'
+      LBRACE        = '{'
+      RBRACE        = '}'
+      LPAREN        = '('
+      RPAREN        = ')'
+      LBRACK        = '['
+      RBRACK        = ']'
+      COMMA         = ','
+      MID           = '|'
+      COLON         = ':'
+      SPACE         = "regexp:\s+"
+      NUMBER        = "regexp:\d+"
+      ID            = "regexp:\w+"
+      LINE_COMMENT  = "regexp:--.*"
+      BLOCK_COMMENT = "regexp:\{-(.|\n)*-}"
+    ]
+}
+
+Program ::= Decls? Term
+IDs ::= ID IDs?
+
+/*
+ *  Declarations
+ */
+
+Decls ::= Decl Decls?
+
+Decl ::= 'data' ID IDs? '{' Injs? '}'
+       | 'codata' ID IDs? '{' Projs? '}'
+       | 'index' ID IDs?
+
+Injs ::= Inj '|' Injs
+       | Inj
+
+Inj ::= ID ':' Constraints '=>' Type
+      | ID ':' Type
+
+Projs ::= Proj ',' Projs
+        | Proj
+
+Proj ::= ID ':' Constraints '=>' Type
+       | ID ':' Type
+
+/*
+ *  Types
+ */
+
+Constraints ::= Constraint ',' Constraints
+              | Constraint
+
+Constraint ::= Type '=' Type
+
+/* Left-recursive
+Type ::= Type TypeAtom    (List Int)
+       | Type1
+*/
+
+
+// This application form should associate to the left
+//Type ::= Type1 TypeP?
+//TypeP ::= Type TypeP?
+
+/* Left-recursive
+right Type1 ::= Type '->' Type
+             | TypeAtom
+*/
+
+//Type1 ::= TypeAtom Type1P
+//Type1P ::= ('->' Type)?
+
+//TypeAtom ::= ID
+//           | 'Int'
+//           | '(' Type ')'
+
+/* My attempt at reworking the grammar like in the tutorial. Unlike the
+tutorial, this indirect left-recursion is not allowed.
+
+Type ::= TypeApp
+       | TypeArr
+       | TypeAtom
+
+TypeApp ::= Type Type
+TypeArr ::= Type '->' Type { rightAssociative = true }
+TypeAtom ::= identifier | literal_type | paren_type
+
+identifier ::= ID
+literal_type ::= 'Int'
+paren_type ::= '(' Type ')'
+*/
+
+
+Type ::= type
+
+type ::= arr_type
+       | app_type
+       | type_atom_group
+
+private type_atom_group ::= var_type | lit_type | paren_type
+
+arr_type   ::= type '->' type { rightAssociative=true }
+app_type   ::= type ID
+lit_type   ::='Int'
+paren_type ::= '(' type ')'
+var_type   ::= ID
+
+/*
+ *  Terms
+ */
+
+/* Left-recursion
+Term ::= Term '+' Term
+       | Term ':' Type
+       | Term1
+*/
+
+// This incorrectly associates to the right!
+//Term ::= Term1 TermP?
+//TermP ::= '+' Term TermP?
+//        | ':' Type TermP?
+
+//right Term1 ::= 'fix' ID 'in' Term
+//             | 'let' ID '=' Term 'in' Term
+//             | 'case' TermAtom '{' Alts? '}'
+//             | Term2
+
+//Term2 ::= '#' TermAtom
+//        | Term3
+
+/* Left-recursion
+Term3 ::= Term TermAtom
+        | 'cocase' ObsCtxAtom TermAtom
+        | TermAtom
+*/
+//Term3 ::= TermAtom Term3P?
+//        | 'cocase' ObsCtxAtom TermAtom
+//        | TermAtom
+//Term3P ::= Term Term3P?
+
+//TermAtom ::= NUMBER
+//           | ID
+//           | '(' Term ')'
+//           | '{' Coalts? '}'
+//           {pin=2}
+
+Term ::= term
+
+term ::= add_term
+       | ann_term
+       | term_binder_group
+       | case_term
+       | prompt_term
+       | app_term
+       | cocase_term
+       | term_atom_group
+
+private term_binder_group ::= fix_term | let_term
+private term_atom_group ::= num_term
+                          | var_term
+                          | paren_term
+                          | coalts_term
+
+add_term     ::= term '+' term
+ann_term     ::= term ':' type_atom_group
+fix_term     ::= 'fix' ID 'in' term
+let_term     ::= 'let' ID '=' term 'in' term
+case_term    ::= 'case' term_atom_group '{' Alts? '}'
+prompt_term  ::= '#' term
+app_term     ::= term ID
+cocase_term  ::= 'cocase' ObsCtxAtom term
+num_term     ::= NUMBER
+var_term     ::= ID
+paren_term   ::= '(' term ')'
+coalts_term  ::= '{' Coalts? '}'
+
+
+/*
+ *  Patterns
+ */
+
+Alts ::= Alt '|' Alts
+       | Alt
+
+Alt ::= Pattern '->' Term
+
+Pattern ::= ID PatternAtom *
+          | ID
+
+PatternAtom ::= '_'
+              | ID
+              | '(' Pattern ')'
+
+/*
+ *  Observable Contexts
+ */
+
+/* Left-recursion
+ObsCtx ::= ObsCtx TermAtom
+         | ObsCtx1
+*/
+ObsCtx ::= ObsCtx1 ObsCtxP?
+ObsCtxP ::= term_atom_group ObsCtxP?
+
+ObsCtx1 ::= ID ObsCtxAtom
+          | ObsCtxAtom
+
+ObsCtxAtom ::= '#'
+             | '[' ObsCtx ']'
+
+/*
+ *  Copatterns
+ */
+
+Coalts ::= Coalt ',' Coalts
+         | Coalt
+
+Coalt ::= Copattern '->' Term
+
+/* Left-recursive
+Copattern ::= Copattern PatternAtom
+            | Copattern1
+*/
+Copattern ::= Copattern1 CopatternP?
+CopatternP ::= PatternAtom CopatternP?
+
+Copattern1 ::= ID CopatternAtom
+             | CopatternAtom
+
+CopatternAtom ::= '#'
+                | '[' Copattern ']'
