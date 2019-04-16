@@ -8,5 +8,5 @@ object DLLanguage : Language("DL", "text/dl", "text/x-dl", "application/x-dl") {
     override fun getDisplayName() = "DL"
 
     // This line is not mentioned in the tutorial, but is necessary for the lexer and parser
-    override fun getAssociatedFileType(): LanguageFileType? = DLFileType
+    //override fun getAssociatedFileType(): LanguageFileType? = DLFileType
 }
