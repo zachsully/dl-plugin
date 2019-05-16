@@ -15,18 +15,20 @@ class DLSyntaxHighlighter : SyntaxHighlighterBase() {
 
     companion object {
         fun map(tokenType: IElementType?) : TextAttributesKey? {
-            val keyword = createTextAttributesKey("KEYWORD",DefaultLanguageHighlighterColors.KEYWORD)
+            val neutral = createTextAttributesKey("KEYWORD",DefaultLanguageHighlighterColors.KEYWORD)
+            val forData = createTextAttributesKey("KEYWORD",DefaultLanguageHighlighterColors.KEYWORD)
+            val forCodata = createTextAttributesKey("KEYWORD",DefaultLanguageHighlighterColors.KEYWORD)
             var out : TextAttributesKey? = null
             when (tokenType) {
-                CASE -> out = keyword
-                COCASE -> out = keyword
-                INDEX -> out = keyword
-                DATA -> out = keyword
-                CODATA -> out = keyword
-                FIX -> out = keyword
-                LET -> out = keyword
-                LETREC -> out = keyword
-                IN -> out = keyword
+                CASE -> out = forData
+                COCASE -> out = forCodata
+                INDEX -> out = neutral
+                DATA -> out = forData
+                CODATA -> out = forCodata
+                FIX -> out = neutral
+                LET -> out = neutral
+                LETREC -> out = neutral
+                IN -> out = neutral
             }
             return out
         }
