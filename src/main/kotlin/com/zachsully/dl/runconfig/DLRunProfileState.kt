@@ -5,14 +5,17 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 
-class DLRunProfileState(env : ExecutionEnvironment) : CommandLineState(env) {
+class DLRunProfileState(mode : DLCompilerMode, env : ExecutionEnvironment) : CommandLineState(env) {
     override fun startProcess(): ProcessHandler {
-        var cmdline = GeneralCommandLine("ls")
+        var cmdline = GeneralCommandLine()
         var project = this.environment.project
         cmdline.exePath = "dl"
         cmdline.addParameter("eval")
-        cmdline.addParameter(project.projectFilePath!!)
+        cmdline.addParameter("-D")
+        cmdline.addParameter(project.basePath + "/main.dl")
         return OSProcessHandler(cmdline.createProcess(),cmdline.getCommandLineString())
     }
 }

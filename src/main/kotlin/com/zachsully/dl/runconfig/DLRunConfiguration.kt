@@ -22,5 +22,5 @@ class DLRunConfiguration(project : Project,
     override fun checkConfiguration() {}
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState?
-      = DLRunProfileState(environment)
+      = DLRunProfileState(mode,environment)
 }
